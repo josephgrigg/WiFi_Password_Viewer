@@ -1,3 +1,17 @@
+"""
+This must be run under SYSTEM context. To do so:
+1) Download psexec.exe
+2) Run command prompt as administrator and change directory to the location of psexec.exe
+3) Run the following command:
+	psexec.exe -i -s -d cmd.exe
+	This will open a new command prompt for you to use. If you type 'whoami',
+	it should say 'nt authority\system'
+4) Now you are ready to run this python script from the command prompt.
+
+These steps are necessary in order to correctly decrypt the stored wifi
+passwords since they were originally encrypted under System context.
+"""
+
 import os
 import xml.etree.ElementTree as elementTree
 from decrypting import decrypt_password as decrypt
@@ -27,4 +41,9 @@ for dirpath, dirnames, filenames in os.walk(folder):
 		else:
 			pwd = ''
 		networks[network_name] = pwd
-		print(network_name, pwd)
+
+# Write networks and passwords to a text file.
+with open('Output.txt', 'w') as output:
+	for network in networks.keys():
+		output.write("network: %s \n\t password: %s \n" % (network, networks[network]))
+output.close()
