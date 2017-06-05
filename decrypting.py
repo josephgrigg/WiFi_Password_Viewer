@@ -23,11 +23,12 @@ crypt_unprotect_data = windll.crypt32.CryptUnprotectData
 class DataBlob(Structure):
 	_fields_ = [("cbData", c_int), ("pbData", c_char_p)]
 	# :cBData: A variable representing the length of the encrypted data.
-	# :pbData: A pointer to the data buffer.
+	# :pbData: A pointer to the encrypted data.
 
 
 def decrypt_password(hexKey):
-	# CryptProtectData encrypts passwords as hexidecimal numbers
+	# CryptProtectData encrypts passwords as hexidecimal numbers, they must
+	# be converted to binary form before decryption.
 	binary_encryption = unhexlify(bytes(hexKey, 'ascii'))
 	data_in = DataBlob(len(binary_encryption), c_char_p(binary_encryption))
 	data_out = DataBlob()
