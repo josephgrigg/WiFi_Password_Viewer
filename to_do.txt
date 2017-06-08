@@ -1,0 +1,46 @@
+1) output to text file
+2) automatically run python under LocalSystem account
+	- run code using an existing windows service
+	- create a new service to run the code under. create child process
+	- run cmd as admin automatically, use psexec.exe
+
+3) add more commands, such as:
+	- get password for specific network
+	- show current wifi network and password
+	- export/import network information
+4) create a better user interface
+5) check whether script is being run on a windows machine (os.name == 'nt')
+6) make sure WEP keys are handled correctly.
+
+
+Trying to write it only in standard library.
+Works with Windows Vista and higher.
+
+User Interface:
+1) which method to use to get passwords?
+	Radiobutton:
+		- Parse command prompt data
+		- decrypt passwords from xml files.
+	display the networks and passwords on a scrolling screen grid.
+	Listbox and scrollbar for network details.
+2) Have menu options.
+	- get current network name.
+	- get current network password.
+	- output list of saved networks.
+	Edit:
+		- Select/Deselect all
+		- copy selected to clipboard
+	- copy password to clipboard button
+	View:
+		- show/hide columns
+	File:
+		- Export options
+
+
+*) Optional Future Additions
+	- Display passwords as ****** and have a "Show" button next to it.
+	- deselect currently selected single row when clicked.
+	- Invert Selection: display.selection_toggle(display.children_get())
+	- Drag columns to move their relative position
+	- Find / Ctrl+F
+	- Automatically clear clipboard when the program closes if any passwords were copied.
