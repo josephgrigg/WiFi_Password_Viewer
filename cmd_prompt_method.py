@@ -24,10 +24,13 @@ def get_networks_and_pwds():
 		network_details = network_details.split(b'\r\n')
 		password = ""
 		authentication_method = ""
+
 		for line in network_details:
 			if b'Key Content' in line:
 				password = str(line.split(b' : ')[1])[2:-1]
 			elif b'Authentication' in line:
 				authentication_method = str(line.split(b' : ')[1])[2:-1]
+
 		result.append((network, password, authentication_method))
+
 	return result
