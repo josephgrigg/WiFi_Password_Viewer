@@ -27,13 +27,10 @@ class Data:
             # Decrypt the XML wifi passwords under System context.
             subprocess.call('psexec.exe -i -s cmd.exe /c \"cd \"%s\" & python xml_decryption_method.py\"' % program_directory)
             # Load the pickled network data that was just saved.
-            with open('pickle-example.p', 'rb') as pfile:
-                data_dictionary = pickle.load(pfile)
-            data = []
-            for key in data_dictionary.keys():
-                data.append((key, data_dictionary[key]))
+            with open('data_pickle.p', 'rb') as pfile:
+                data = pickle.load(pfile)
             # Delete the pickle file after it has been loaded.
-            os.remove('pickle-example.p')
+            os.remove('data_pickle.p')
 
         else:
             data = []
@@ -42,9 +39,9 @@ class Data:
 
 
 class ColumnSelect:
-    column_names = ['Network', 'Password', 'Authentication']
-    column_order = ['Network', 'Password', 'Authentication']
-    columns = {'Network': True, 'Password': True, 'Authentication': True}
+    column_names = ['Network', 'Password', 'Authentication', 'Encryption', 'Filename']
+    column_order = ['Network', 'Password', 'Authentication', 'Encryption', 'Filename']
+    columns = {'Network': True, 'Password': True, 'Authentication': True, 'Encryption': True, 'Filename': True}
     columns_shown = column_names
 
     def __init__(self, results_display):
@@ -129,6 +126,7 @@ class MenuBar:
         decryption_method_menu.add_radiobutton(
             label='Decrypt from XML files',
             command=lambda: globals().update(data_collection_method='xml'))
+        decryption_method_menu.invoke(1)
 
     def column_selection_window(self):
         ColumnSelect(self.screen.results_display)
