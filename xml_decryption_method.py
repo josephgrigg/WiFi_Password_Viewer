@@ -14,9 +14,9 @@ passwords since they were originally encrypted under System context.
 
 import os, pickle
 import xml.etree.ElementTree as elementTree
-from decrypting import decrypt_password as decrypt
-from binascii import unhexlify
-import binascii
+from windows_cryptography import decrypt_password as decrypt
+# from binascii import unhexlify
+# import binascii
 
 
 networks = dict()
