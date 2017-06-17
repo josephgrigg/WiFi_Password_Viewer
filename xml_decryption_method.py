@@ -57,5 +57,5 @@ with open('Output.txt', 'w') as output:
 		output.write("network: %s \n\t password: %s \n" % (network, networks[network]))
 output.close()
 
-with open('pickle-example.p', 'wb') as pfile:
+with open('data_pickle.p', 'wb') as pfile:
 	pickle.dump(networks, pfile)

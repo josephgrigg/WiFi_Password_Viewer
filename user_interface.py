@@ -45,6 +45,7 @@ class ColumnSelect:
     column_names = ['Network', 'Password', 'Authentication']
     column_order = ['Network', 'Password', 'Authentication']
     columns = {'Network': True, 'Password': True, 'Authentication': True}
+    columns_shown = column_names
 
     def __init__(self, results_display):
         self.results_display = results_display
@@ -70,11 +71,11 @@ class ColumnSelect:
         ColumnSelect.columns['Network'] = self.networks.get()
         ColumnSelect.columns['Password'] = self.passwords.get()
         ColumnSelect.columns['Authentication'] = self.auths.get()
-        columns_shown = []
+        ColumnSelect.columns_shown = []
         for name in ColumnSelect.column_order:
             if ColumnSelect.columns[name]:
-                columns_shown.append(name)
-        self.results_display['displaycolumns'] = columns_shown
+                ColumnSelect.columns_shown.append(name)
+        self.results_display['displaycolumns'] = ColumnSelect.columns_shown
         self.top.destroy()
 
 
@@ -130,30 +131,46 @@ class MenuBar:
             command=lambda: globals().update(data_collection_method='xml'))
 
     def column_selection_window(self):
-        ColumnSelect(self.screen.result_display)
+        ColumnSelect(self.screen.results_display)
 
     def toggle_row_color(self, row_color):
-        self.screen.result_display.tag_configure('grey background',
+        self.screen.results_display.tag_configure('grey background',
                                                 background=row_color.get())
         self.grey_rows = not self.grey_rows
 
     def mark_all(self):
-        self.screen.result_display.selection_set(
-            self.screen.result_display.get_children())
+        self.screen.results_display.selection_set(
+            self.screen.results_display.get_children())
 
     def unmark_all(self):
-        self.screen.result_display.selection_set([])
+        self.screen.results_display.selection_set([])
 
     def invert_selection(self):
-        self.screen.result_display.selection_toggle(
-            self.screen.result_display.get_children())
+        self.screen.results_display.selection_toggle(
+            self.screen.results_display.get_children())
 
     def copy_selection(self):
         self.root.clipboard_clear()
 
-        for item in self.screen.result_display.selection():
-            values = self.screen.result_display.item(item=item, option='values')
-            self.root.clipboard_append(values[0] + '\t' + values[1] + '\n')
+        # Determine the order that the columns appear on the screen.
+        order_map = []
+        # '#all' means that the columns are in their original order and all
+        # are being shown.
+        if '#all' in self.screen.results_display['displaycolumns']:
+            order_map = list(range(len(ColumnSelect.column_names)))
+        else:
+            for title in self.screen.results_display['displaycolumns']:
+                order_map.append(ColumnSelect.column_names.index(title))
+
+        for item in self.screen.results_display.selection():
+            values = self.screen.results_display.item(item=item, option='values')
+            for i in range(len(order_map)):
+                if order_map[i] < len(values):
+                    self.root.clipboard_append(values[order_map[i]])
+                    if i != len(order_map) - 1:
+                        self.root.clipboard_append('\t')
+            if item != self.screen.results_display.selection()[-1]:
+                self.root.clipboard_append('\n')
 
     def clear_clipboard(self):
         self.root.clipboard_clear()
@@ -163,7 +180,7 @@ class MenuBar:
         self.screen.refresh_results_display()
 
         if self.grey_rows:
-            self.screen.result_display.tag_configure('grey background',
+            self.screen.results_display.tag_configure('grey background',
                                                     background='light grey')
 
 
@@ -216,16 +233,17 @@ class MainScreen:
         network_data = Data(data_collection_method).network_info
         vert_sb = ttk.Scrollbar(self.mainframe, orient=tk.VERTICAL)
         horz_sb = ttk.Scrollbar(self.mainframe, orient=tk.HORIZONTAL)
-        self.result_display = self.multi_column_listbox(ColumnSelect.column_names)
-        self.fill_multi_column_listbox(self.result_display, network_data)
-        self.result_display.grid(row=0, column=0, in_=self.mainframe,
+        self.results_display = self.multi_column_listbox(ColumnSelect.column_names)
+        self.fill_multi_column_listbox(self.results_display, network_data)
+        self.results_display.grid(row=0, column=0, in_=self.mainframe,
                                  sticky='NSEW')
-        self.result_display.configure(yscrollcommand=vert_sb.set,
+        self.results_display.configure(yscrollcommand=vert_sb.set,
                                       xscrollcommand=horz_sb.set)
         vert_sb.grid(row=0, column=1, sticky="NS")
-        vert_sb.config(command=self.result_display.yview)
+        vert_sb.config(command=self.results_display.yview)
         horz_sb.grid(row=1, column=0, sticky="EW")
-        horz_sb.config(command=self.result_display.xview)
+        horz_sb.config(command=self.results_display.xview)
+        self.results_display['displaycolumns'] = ColumnSelect.columns_shown
 
 
 class ProgramGUI:
@@ -238,9 +256,6 @@ class ProgramGUI:
         self.root.title(program_title)
         self.screen = MainScreen(self.root)
         self.menu_bar = MenuBar(self.root, self.screen)
-        # self.screen.result_display['displaycolumns'] = ('Password')
-        # print(len(self.screen.result_display['displaycolumns']))
-
 
 
 if __name__ == "__main__":
@@ -249,4 +264,3 @@ if __name__ == "__main__":
     # network_data = Data(data_collection_method).network_info
     my_gui = ProgramGUI(root)
     root.mainloop()
-    print(ColumnSelect.show_auth_col)
