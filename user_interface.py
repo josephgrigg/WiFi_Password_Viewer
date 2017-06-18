@@ -1,4 +1,5 @@
 # Tkinter in python 2, tkinter in python 3
+from tkinter import filedialog
 import tkinter as tk
 import tkinter.ttk as ttk
 from cmd_prompt_method import get_networks_and_pwds
@@ -51,23 +52,31 @@ class ColumnSelect:
         self.networks = tk.BooleanVar(value=ColumnSelect.columns['Network'])
         self.passwords = tk.BooleanVar(value=ColumnSelect.columns['Password'])
         self.auths = tk.BooleanVar(value=ColumnSelect.columns['Authentication'])
+        self.encryptions = tk.BooleanVar(value=ColumnSelect.columns['Encryption'])
+        self.filenames = tk.BooleanVar(value=ColumnSelect.columns['Filename'])
         self.msg = tk.Message(self.top, text='Select which columns you would like to be displayed.')
         self.msg.grid(in_=self.top, row=0)
         self.network = tk.Checkbutton(self.top, text='Network', variable=self.networks)
         self.password = tk.Checkbutton(self.top, text='Password', variable=self.passwords)
         self.auth = tk.Checkbutton(self.top, text='Authentication', variable=self.auths)
+        self.encrypt = tk.Checkbutton(self.top, text='Encryption', variable=self.encryptions)
+        self.fnames = tk.Checkbutton(self.top, text='Filename', variable=self.filenames)
         self.submit_button = tk.Button(self.top, text='Submit', command=self.submit_changes)
         self.cancel_button = tk.Button(self.top, text='Cancel', command=self.top.destroy)
         self.network.grid(in_=self.top, row=1, sticky='W')
         self.password.grid(in_=self.top, row=2, sticky='W')
         self.auth.grid(in_=self.top, row=3, sticky='W')
-        self.submit_button.grid(in_=self.top, row=4, column=0, sticky='E')
-        self.cancel_button.grid(in_=self.top, row=4, column=1, sticky='E')
+        self.encrypt.grid(in_=self.top, row=4, sticky='W')
+        self.fnames.grid(in_=self.top, row=5, sticky='W')
+        self.submit_button.grid(in_=self.top, row=6, column=0, sticky='E')
+        self.cancel_button.grid(in_=self.top, row=6, column=1, sticky='E')
 
     def submit_changes(self):
         ColumnSelect.columns['Network'] = self.networks.get()
         ColumnSelect.columns['Password'] = self.passwords.get()
         ColumnSelect.columns['Authentication'] = self.auths.get()
+        ColumnSelect.columns['Encryption'] = self.encryptions.get()
+        ColumnSelect.columns['Filename'] = self.filenames.get()
         ColumnSelect.columns_shown = []
         for name in ColumnSelect.column_order:
             if ColumnSelect.columns[name]:
@@ -97,7 +106,9 @@ class MenuBar:
         menu_bar.add_cascade(menu=menu_preferences, label='Preferences')
 
         # Add options for File menu.
-        menu_file.add_command(label='Export', command=NotImplemented)
+        menu_file.add_command(label='Save Selection (tab delimited)',
+                              command=self.save_as,
+                              accelerator='Ctrl+S')
 
         # Add options for View menu.
         row_color = tk.StringVar()
@@ -105,16 +116,31 @@ class MenuBar:
             label='Color Odd Rows Grey',
             variable=row_color, onvalue='light grey', offvalue='white',
             command=lambda c=row_color: self.toggle_row_color(c))
-        menu_view.add_command(label='Show/Hide Columns', command=self.column_selection_window)
+        menu_view.add_command(label='Show/Hide Columns',
+                              command=self.column_selection_window)
 
         # Add options for Edit menu.
-        menu_edit.add_command(label='Copy Selection', command=self.copy_selection)
-        menu_edit.add_command(label='Copy Current Network Password', command=NotImplemented)
-        menu_edit.add_command(label='Clear Clipboard', command=self.clear_clipboard)
-        menu_edit.add_command(label='Mark All', command=self.mark_all)
-        menu_edit.add_command(label='Unmark All', command=self.unmark_all)
-        menu_edit.add_command(label='Invert Selection', command=self.invert_selection)
-        menu_edit.add_command(label='Refresh', command=self.refresh_data)
+        menu_edit.add_command(label='Copy Selection',
+                              command=self.copy_selection,
+                              accelerator='Ctrl+C')
+        menu_edit.add_command(label='Copy Current Network Password',
+                              command=NotImplemented)
+        menu_edit.add_command(label='Clear Clipboard',
+                              command=self.clear_clipboard)
+        menu_edit.add_separator()
+        menu_edit.add_command(label='Select All',
+                              command=self.select_all,
+                              accelerator='Ctrl+A')
+        menu_edit.add_command(label='Deselect All',
+                              command=self.deselect_all,
+                              accelerator='Ctrl+D')
+        menu_edit.add_command(label='Invert Selection',
+                              command=self.invert_selection,
+                              accelerator='Ctrl+I')
+        menu_edit.add_separator()
+        menu_edit.add_command(label='Refresh',
+                              command=self.refresh_data,
+                              accelerator='F5')
 
         # Add options for Preferences menu.
         decryption_method_menu = tk.Menu(menu_bar)
@@ -128,6 +154,32 @@ class MenuBar:
             command=lambda: globals().update(data_collection_method='xml'))
         decryption_method_menu.invoke(1)
 
+    def save_as(self):
+        file = filedialog.asksaveasfile(mode='w', defaultextension='.txt')
+        # Exit function if user presses cancel button.
+        if file is None:
+            return
+        # Determine the order that the columns appear on the screen.
+        order_map = []
+        # '#all' means that the columns are in their original order and all
+        # are being shown.
+        if '#all' in self.screen.results_display['displaycolumns']:
+            order_map = list(range(len(ColumnSelect.column_names)))
+        else:
+            for title in self.screen.results_display['displaycolumns']:
+                order_map.append(ColumnSelect.column_names.index(title))
+
+        for item in self.screen.results_display.selection():
+            values = self.screen.results_display.item(item=item, option='values')
+            for i in range(len(order_map)):
+                if order_map[i] < len(values):
+                    file.write(values[order_map[i]])
+                    if i != len(order_map) - 1:
+                        file.write('\t')
+            if item != self.screen.results_display.selection()[-1]:
+                file.write('\n')
+        file.close()
+
     def column_selection_window(self):
         ColumnSelect(self.screen.results_display)
 
@@ -136,11 +188,11 @@ class MenuBar:
                                                 background=row_color.get())
         self.grey_rows = not self.grey_rows
 
-    def mark_all(self):
+    def select_all(self):
         self.screen.results_display.selection_set(
             self.screen.results_display.get_children())
 
-    def unmark_all(self):
+    def deselect_all(self):
         self.screen.results_display.selection_set([])
 
     def invert_selection(self):
@@ -198,6 +250,8 @@ class MainScreen:
 
         for col in tree['columns']:
             tree.column(col, width=300)
+            if col == 'Encryption' or col == 'Authentication':
+                tree.column(col, width=100)
             tree.heading(col, text=col, anchor='center',
                         command=lambda x=col: self.sort_column(tree, x, False))
 
@@ -234,9 +288,9 @@ class MainScreen:
         self.results_display = self.multi_column_listbox(ColumnSelect.column_names)
         self.fill_multi_column_listbox(self.results_display, network_data)
         self.results_display.grid(row=0, column=0, in_=self.mainframe,
-                                 sticky='NSEW')
+                                  sticky='NSEW')
         self.results_display.configure(yscrollcommand=vert_sb.set,
-                                      xscrollcommand=horz_sb.set)
+                                       xscrollcommand=horz_sb.set)
         vert_sb.grid(row=0, column=1, sticky="NS")
         vert_sb.config(command=self.results_display.yview)
         horz_sb.grid(row=1, column=0, sticky="EW")
@@ -244,7 +298,7 @@ class MainScreen:
         self.results_display['displaycolumns'] = ColumnSelect.columns_shown
 
 
-class ProgramGUI:
+class ProgramGUI(tk.Tk):
 
     def __init__(self, master):
         self.root = master
@@ -254,6 +308,32 @@ class ProgramGUI:
         self.root.title(program_title)
         self.screen = MainScreen(self.root)
         self.menu_bar = MenuBar(self.root, self.screen)
+
+    # Keyboard shortcuts
+        self.root.bind_all('<Control-c>', self.copy_shortcut)
+        self.root.bind_all('<F5>', self.refresh_shortcut)
+        self.root.bind_all('<Control-a>', self.select_all_shortcut)
+        self.root.bind_all('<Control-d>', self.deselect_all_shortcut)
+        self.root.bind_all('<Control-i>', self.invert_selection_shortcut)
+        self.root.bind_all('<Control-s>', self.save_shortcut)
+
+    def copy_shortcut(self, event):
+        self.menu_bar.copy_selection()
+
+    def refresh_shortcut(self, event):
+        self.menu_bar.refresh_data()
+
+    def select_all_shortcut(self, event):
+        self.menu_bar.select_all()
+
+    def deselect_all_shortcut(self, event):
+        self.menu_bar.deselect_all()
+
+    def invert_selection_shortcut(self, event):
+        self.menu_bar.invert_selection()
+
+    def save_shortcut(self, event):
+        self.menu_bar.save_as()
 
 
 if __name__ == "__main__":
