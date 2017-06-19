@@ -2,11 +2,12 @@
 from tkinter import filedialog
 import tkinter as tk
 import tkinter.ttk as ttk
-from cmd_prompt_method import get_networks_and_pwds
+import cmd_prompt_method as cpm
 import subprocess
 import pickle
 import sys
 import os
+import webbrowser
 
 
 program_title = 'WiFi Password Revealer'
@@ -22,7 +23,7 @@ class Data:
 
     def collect_network_info(self, pwd_collection_method):
         if pwd_collection_method == 'cmd':
-            data = get_networks_and_pwds()
+            data = cpm.get_networks_and_pwds()
 
         elif pwd_collection_method == 'xml':
             # Decrypt the XML wifi passwords under System context.
@@ -85,6 +86,35 @@ class ColumnSelect:
         self.top.destroy()
 
 
+class About:
+
+    def __init__(self, master):
+        self.root = master
+        self.top = tk.Toplevel(self.root)
+        self.top.geometry('300x100')
+        self.top.wm_resizable(width=False, height=False)
+        self.top.title('About')
+        self.top.wm_attributes('-toolwindow', True)
+        self.top.grab_set()
+        self.frame = ttk.Frame(self.top)
+        self.frame.pack()
+        self.msg = tk.Message(self.frame, text='WiFi Password Revealer is a work in progress.', width=300)
+        self.msg2 = tk.Message(self.frame, text='For help and information, please visit the project\'s Github page.', width=300)
+        self.link = tk.Label(self.frame, text=r'www.github.com/jgrigg2017/WiFi_Password_Viewer', fg='blue', cursor='hand2')
+        self.msg.pack()
+        self.msg2.pack()
+        self.link.pack()
+        self.link.bind('<Button-1>', self.open_link)
+        self.top.protocol("WM_DELETE_WINDOW", self.exit)
+
+    def open_link(self, event=None):
+        webbrowser.open_new(event.widget.cget('text'))
+
+    def exit(self, event=None):
+        self.root.focus_set()
+        self.top.destroy()
+
+
 class MenuBar:
 
     def __init__(self, master, screen):
@@ -97,6 +127,7 @@ class MenuBar:
         menu_edit = tk.Menu(menu_bar)
         menu_view = tk.Menu(menu_bar)
         menu_preferences = tk.Menu(menu_bar)
+        menu_help = tk.Menu(menu_bar)
         self.root.config(menu=menu_bar)
 
         # Add drop down menus to menu bar.
@@ -104,6 +135,7 @@ class MenuBar:
         menu_bar.add_cascade(menu=menu_edit, label='Edit')
         menu_bar.add_cascade(menu=menu_view, label='View')
         menu_bar.add_cascade(menu=menu_preferences, label='Preferences')
+        menu_bar.add_cascade(menu=menu_help, label='Help')
 
         # Add options for File menu.
         menu_file.add_command(label='Save Selection (tab delimited)',
@@ -154,8 +186,14 @@ class MenuBar:
             command=lambda: globals().update(data_collection_method='xml'))
         decryption_method_menu.invoke(1)
 
+        # Add options for Help menu.
+        menu_help.add_command(label='About', command=self.create_about_window)
+
+    def create_about_window(self):
+        About(self.root)
+
     def save_as(self):
-        file = filedialog.asksaveasfile(mode='w', defaultextension='.txt')
+        file = filedialog.asksaveasfile(mode='w', filetypes=(('Tab delimited text file', '*.txt'), ('all files', '*.*')))
         # Exit function if user presses cancel button.
         if file is None:
             return
@@ -182,6 +220,9 @@ class MenuBar:
 
     def column_selection_window(self):
         ColumnSelect(self.screen.results_display)
+
+    def about_window(self):
+        About()
 
     def toggle_row_color(self, row_color):
         self.screen.results_display.tag_configure('grey background',
@@ -317,22 +358,22 @@ class ProgramGUI(tk.Tk):
         self.root.bind_all('<Control-i>', self.invert_selection_shortcut)
         self.root.bind_all('<Control-s>', self.save_shortcut)
 
-    def copy_shortcut(self, event):
+    def copy_shortcut(self, event=None):
         self.menu_bar.copy_selection()
 
-    def refresh_shortcut(self, event):
+    def refresh_shortcut(self, event=None):
         self.menu_bar.refresh_data()
 
-    def select_all_shortcut(self, event):
+    def select_all_shortcut(self, event=None):
         self.menu_bar.select_all()
 
-    def deselect_all_shortcut(self, event):
+    def deselect_all_shortcut(self, event=None):
         self.menu_bar.deselect_all()
 
-    def invert_selection_shortcut(self, event):
+    def invert_selection_shortcut(self, event=None):
         self.menu_bar.invert_selection()
 
-    def save_shortcut(self, event):
+    def save_shortcut(self, event=None):
         self.menu_bar.save_as()
 
 
