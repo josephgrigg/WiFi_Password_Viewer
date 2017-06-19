@@ -1,7 +1,7 @@
 # Tkinter in python 2, tkinter in python 3
-from tkinter import filedialog
 import tkinter as tk
 import tkinter.ttk as ttk
+import tkinter.filedialog as filedialog
 import cmd_prompt_method as cpm
 import subprocess
 import pickle
@@ -98,17 +98,26 @@ class About:
         self.top.grab_set()
         self.frame = ttk.Frame(self.top)
         self.frame.pack()
-        self.msg = tk.Message(self.frame, text='WiFi Password Revealer is a work in progress.', width=300)
-        self.msg2 = tk.Message(self.frame, text='For help and information, please visit the project\'s Github page.', width=300)
-        self.link = tk.Label(self.frame, text=r'www.github.com/jgrigg2017/WiFi_Password_Viewer', fg='blue', cursor='hand2')
+        self.msg = tk.Message(
+            self.frame,
+            text='WiFi Password Revealer is a work in progress.',
+            width=300)
+        self.msg2 = tk.Message(
+            self.frame,
+            text='For help and information, please visit the project\'s Github page.',
+            width=300)
+        self.link = tk.Label(
+            self.frame,
+            text=r'www.github.com/jgrigg2017/WiFi_Password_Viewer',
+            fg='blue',
+            cursor='hand2')
+        self.link.bind(
+            '<Button-1>',
+            lambda event=None: webbrowser.open_new(event.widget.cget('text')))
         self.msg.pack()
         self.msg2.pack()
         self.link.pack()
-        self.link.bind('<Button-1>', self.open_link)
         self.top.protocol("WM_DELETE_WINDOW", self.exit)
-
-    def open_link(self, event=None):
-        webbrowser.open_new(event.widget.cget('text'))
 
     def exit(self, event=None):
         self.root.focus_set()
@@ -149,7 +158,7 @@ class MenuBar:
             variable=row_color, onvalue='light grey', offvalue='white',
             command=lambda c=row_color: self.toggle_row_color(c))
         menu_view.add_command(label='Show/Hide Columns',
-                              command=self.column_selection_window)
+                              command=lambda: ColumnSelect(self.screen.results_display))
 
         # Add options for Edit menu.
         menu_edit.add_command(label='Copy Selection',
@@ -187,10 +196,22 @@ class MenuBar:
         decryption_method_menu.invoke(1)
 
         # Add options for Help menu.
-        menu_help.add_command(label='About', command=self.create_about_window)
+        menu_help.add_command(label='About', command=lambda: About(self.root))
 
-    def create_about_window(self):
-        About(self.root)
+        # Add a right click menu.
+        self.screen.mainframe.bind_all('<Button-3>', self.popup_menu)
+        self.rc_menu = tk.Menu(self.root)
+        self.rc_menu.add_command(label='Copy Selection', command=self.copy_selection)
+        self.rc_menu.add_separator()
+        self.rc_menu.add_command(label='Select All', command=self.select_all)
+        self.rc_menu.add_command(label='Deselect All', command=self.deselect_all)
+        self.rc_menu.add_command(label='Invert Selection', command=self.invert_selection)
+        self.rc_menu.add_separator()
+        self.rc_menu.add_command(label='Refresh', command=self.refresh_data)
+        self.rc_menu.add_command(label='Save Selection', command=self.save_as)
+
+    def popup_menu(self, event):
+        self.rc_menu.post(event.x_root, event.y_root)
 
     def save_as(self):
         file = filedialog.asksaveasfile(mode='w', filetypes=(('Tab delimited text file', '*.txt'), ('all files', '*.*')))
@@ -217,12 +238,6 @@ class MenuBar:
             if item != self.screen.results_display.selection()[-1]:
                 file.write('\n')
         file.close()
-
-    def column_selection_window(self):
-        ColumnSelect(self.screen.results_display)
-
-    def about_window(self):
-        About()
 
     def toggle_row_color(self, row_color):
         self.screen.results_display.tag_configure('grey background',
@@ -351,30 +366,18 @@ class ProgramGUI(tk.Tk):
         self.menu_bar = MenuBar(self.root, self.screen)
 
     # Keyboard shortcuts
-        self.root.bind_all('<Control-c>', self.copy_shortcut)
-        self.root.bind_all('<F5>', self.refresh_shortcut)
-        self.root.bind_all('<Control-a>', self.select_all_shortcut)
-        self.root.bind_all('<Control-d>', self.deselect_all_shortcut)
-        self.root.bind_all('<Control-i>', self.invert_selection_shortcut)
-        self.root.bind_all('<Control-s>', self.save_shortcut)
-
-    def copy_shortcut(self, event=None):
-        self.menu_bar.copy_selection()
-
-    def refresh_shortcut(self, event=None):
-        self.menu_bar.refresh_data()
-
-    def select_all_shortcut(self, event=None):
-        self.menu_bar.select_all()
-
-    def deselect_all_shortcut(self, event=None):
-        self.menu_bar.deselect_all()
-
-    def invert_selection_shortcut(self, event=None):
-        self.menu_bar.invert_selection()
-
-    def save_shortcut(self, event=None):
-        self.menu_bar.save_as()
+        self.root.bind_all('<Control-c>',
+                           lambda event=None: self.menu_bar.copy_selection())
+        self.root.bind_all('<F5>',
+                           lambda event=None: self.menu_bar.refresh_data())
+        self.root.bind_all('<Control-a>',
+                           lambda event=None: self.menu_bar.select_all())
+        self.root.bind_all('<Control-d>',
+                           lambda event=None: self.menu_bar.deselect_all())
+        self.root.bind_all('<Control-i>',
+                           lambda event=None: self.menu_bar.invert_selection())
+        self.root.bind_all('<Control-s>',
+                           lambda event=None: self.menu_bar.save_as())
 
 
 if __name__ == "__main__":
