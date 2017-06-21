@@ -8,7 +8,6 @@ class About(tk.Toplevel):
     def __init__(self, master):
         self.root = master
         super().__init__(self.root)
-        self.geometry('300x100')
         self.wm_resizable(width=False, height=False)
         self.title('About')
         self.wm_attributes('-toolwindow', True)
@@ -36,9 +35,11 @@ class About(tk.Toplevel):
         self.link.pack()
         self.protocol("WM_DELETE_WINDOW", self.exit)
 
-        sw = self.root.winfo_x() + self.root.winfo_screenwidth() / 2
-        sh = self.root.winfo_y() + self.root.winfo_screenheight() / 2
-        print(self.root.winfo_screenwidth())
+        sw = min([self.root.winfo_x() + self.root.winfo_width() / 2 - 150, self.root.winfo_screenwidth() - 300])
+        sw = max([0, sw])
+        sh = min([self.root.winfo_y() + self.root.winfo_height() / 2 - 50, self.root.winfo_screenheight() - 150])
+        sh = max([0, sh])
+        print(self.root.winfo_width())
         self.geometry('300x100+%d+%d' % (sw, sh))
 
     def exit(self, event=None):
