@@ -12,11 +12,11 @@ These steps are necessary in order to correctly decrypt the stored wifi
 passwords since they were originally encrypted under System context.
 """
 
-import os, pickle
+import os
+import pickle
 import xml.etree.ElementTree as elementTree
 from windows_cryptography import decrypt_password as decrypt
-# from binascii import unhexlify
-# import binascii
+import binascii
 
 networks = []
 folder = os.getenv("PROGRAMDATA") + '\Microsoft\Wlansvc\Profiles\Interfaces'
@@ -43,11 +43,11 @@ for dirpath, dirnames, filenames in os.walk(folder):
 		for node in root.iter(namespace + 'encryption'):
 			encryption = node.text
 		if (keyType == 'passPhrase'):
-			pwd = decrypt(encrypted_password).decode('UTF-8', errors='ignore')
-		# elif (keyType == 'networkKey'):
-			# pwd = binascii.b2a_hex(decrypt(encrypted_password)).decode('UTF-8', errors='ignore')
-			# pwd = decrypt(encrypted_password)
-			#pwd = unhexlify(decrypt(encrypted_password))
+			binary_pwd = decrypt(encrypted_password)[0]
+			pwd = binary_pwd.decode('UTF-8', errors='ignore')
+		elif (keyType == 'networkKey'):
+			binary_pwd, length = decrypt(encrypted_password)
+			pwd = binascii.b2a_hex(binary_pwd[:length]).decode('UTF-8', errors='ignore')
 		else:
 			pwd = ''
 		networks.append((network_name, pwd, auth, encryption, file))
