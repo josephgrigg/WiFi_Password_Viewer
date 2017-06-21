@@ -35,10 +35,12 @@ class MenuBar(tk.Menu):
 
         # Add options for View menu.
         row_color = tk.StringVar()
+        """
         menu_view.add_checkbutton(
             label='Color Odd Rows Grey',
             variable=row_color, onvalue='light grey', offvalue='white',
             command=lambda c=row_color: gf.toggle_row_color(self, c))
+        """
         menu_view.add_command(
             label='Show/Hide Columns',
             command=lambda: ColumnSelect(self.screen.results_display))
@@ -48,9 +50,11 @@ class MenuBar(tk.Menu):
             label='Copy Selection',
             command=lambda: gf.copy_selection(self.root, self.screen.results_display),
             accelerator='Ctrl+C')
+        """
         menu_edit.add_command(
             label='Copy Current Network Password',
             command=NotImplemented)
+        """
         menu_edit.add_command(
             label='Clear Clipboard',
             command=lambda: gf.clear_clipboard(self.root))
