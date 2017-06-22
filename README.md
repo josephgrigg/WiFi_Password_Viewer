@@ -1,7 +1,7 @@
 # WiFi_Password_Viewer
-## What it does:
+## How it works:
 WiFi network information is saved onto .XML files located in: ProgramData\Microsoft\Wlansvc\Profiles\Interfaces\
-The passwords found in these XML files are encrypted using Windows DPAPI. Within the crypt32.dll that is installed with Windows, you can find the cryptography functions that are used to protect and unprotect the WiFi passwords. This program uses these Windows cryptography functions in order to decrypt the passwords and display them in cleartext. Alternatively, from the 'Preferences' drop down menu, you can also choose to decrypt the passwords using the command prompt 'netsh wlan' command.
+The passwords found in these XML files are encrypted using Windows DPAPI. Within the crypt32.dll that is installed with Windows, you can find the cryptography functions that are used to protect and unprotect the WiFi passwords. This program uses these Windows cryptography functions in order to decrypt the passwords and display them in cleartext. Alternatively, from the 'Preferences' drop down menu, you can choose to decrypt the passwords using the command prompt 'netsh wlan' command.
 
 ![](http://i.imgur.com/q5aVCwb.png)
 ## How to use:
